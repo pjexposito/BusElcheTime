@@ -6,7 +6,7 @@
 #include <pebble.h>
 #include "bus.h"
 #include "busdb.h"
-  
+#include "ventana_info.h"
   
   
 Window* window;
@@ -150,7 +150,8 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
     action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
     cargando = 0;
     vibes_short_pulse();
-
+    //dialog_message_window_push(numero_parada(), devuelve_lineasxparada(numero_parada()));
+    dialog_message_window_push(numero_parada(), texto);
 }
 
 void send_int(int16_t parada, const char *linea)
@@ -249,6 +250,7 @@ void down_click_handler(ClickRecognizerRef recognizer, void *context)
 
 void select_click_handler(ClickRecognizerRef recognizer, void *context)
 {
+
   if (cargando==1)
     return;
   
@@ -284,7 +286,7 @@ void select_click_handler(ClickRecognizerRef recognizer, void *context)
       }
       break;    
 		case 3:
-      envia_peticion();
+        envia_peticion();
       break;     
     }
 
