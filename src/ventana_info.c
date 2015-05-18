@@ -4,7 +4,7 @@ static Window *s_main_window;
 static TextLayer *s_label_layer;
 static BitmapLayer *s_icon_layer;
 int i_parada;
-char i_lineas[30];
+char i_lineas[200];
 
 static GBitmap *s_icon_bitmap;
 
@@ -22,7 +22,7 @@ static void window_load(Window *window) {
   s_label_layer = text_layer_create(GRect(10, 10 + bitmap_bounds.size.h + 5, 124, 168 - (10 + bitmap_bounds.size.h + 10)));
   text_layer_set_text(s_label_layer, i_lineas);
   text_layer_set_background_color(s_label_layer, GColorClear);
-  text_layer_set_font(s_label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_font(s_label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(s_label_layer));
 }
 
@@ -36,7 +36,7 @@ static void window_unload(Window *window) {
   s_main_window = NULL;
 }
 
-void dialog_message_window_push(int parada, char lineas[30]) {
+void dialog_message_window_push(int parada, char lineas[200]) {
   if(!s_main_window) {
     i_parada = parada;
     memset(&i_lineas[0], 0, sizeof(i_lineas));

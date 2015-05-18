@@ -24,7 +24,7 @@ GBitmap *arriba_bitmap, *abajo_bitmap, *pulsar_bitmap, *play_bitmap, *buscar_bit
 
 
 // Resto de variables
-char texto[1024], tiempo1[10], tiempo2[10], tiempo_retorno[100];
+char texto[1024], tiempo1[100], tiempo2[100], tiempo_retorno[100];
 static int numero1, numero2, numero3, letra, posicion=0, cargando=0, tamano_array_lineas, pre_parada=0;
 
 // Asignación para recibir datos
@@ -40,6 +40,7 @@ enum {
 
 char* subString (const char* input, int offset, int len, char* dest)
 {
+  
   int input_len = strlen (input);
   char es_cero[2];
   memset(&es_cero[0], 0, sizeof(es_cero));
@@ -84,67 +85,71 @@ void pinta_datos(void)
   
 }
 
-void process_tuple(Tuple *t)
-{
-
-  int key = t->key;
-	switch(key) 
-    {
-		case KEY_L1:
-      strcat(tiempo1, t->value->cstring);
-      break;
-		case KEY_L2:
-      strcat(tiempo2, t->value->cstring);
-			break;
-    }
-
-
-}
-
 static void in_received_handler(DictionaryIterator *iter, void *context) 
 {
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Acabo de recibir datos (pebble).");
 
-	memset(&tiempo1[0], 0, sizeof(tiempo1));
-  memset(&tiempo2[0], 0, sizeof(tiempo2));
+
+
   memset(&tiempo_retorno[0], 0, sizeof(tiempo_retorno));
-
-
+  memset(&tiempo1[0], 0, sizeof(tiempo1));
+  memset(&tiempo2[0], 0, sizeof(tiempo2));
+   
   (void) context;	
 	Tuple *t = dict_read_first(iter);
-  strcat(tiempo_retorno, t->value->cstring);
-  subString (tiempo_retorno, 0, 2, tiempo1);
-  subString (tiempo_retorno, 2, 2, tiempo2);
 
-	/*
-  if(t)	process_tuple(t);
-	while(t != NULL)
-	{
-		t = dict_read_next(iter);
-		if(t)	process_tuple(t);
-	}
-  */
-  
-  
+  strcat(tiempo_retorno, t->value->cstring);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Acabo de recibir datos (pebble). Retorno: %s", tiempo_retorno);
+     strcpy(texto,"Paradas: ");
+
+  for (int v=0;v<5;v++)
+    {
+  tiempo1[0] = '\0';
+  tiempo2[0] = '\0';
+  subString (tiempo_retorno, 4*v, 2, tiempo1);
+  subString (tiempo_retorno, (4*v)+2, 2, tiempo2);
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "V vale %i. Tiempos: %s %s", v, tiempo1, tiempo2);
+
     // CODIGOS DE ERROR
     // 97 = Error 404. La web no existe. Posiblemente por que la parada seleccionada no existe.
     // 98 = Existe la línea y la parada pero no hay datos (posiblemente no circulen autobueses a esas horas).
     // 99 = No pasa esa linea por la parada seleccionada.
     if (strcmp(tiempo1,"99")==0)
-      text_layer_set_text(mensaje_layer, "Servicio no disponible.");
+      {
+      strcat(texto,"Parada ");
+      strcat(texto, devuelve_linea(numero_parada(), v));
+      strcat(texto, " sin servicio.");
+      }
     else if (strcmp(tiempo1,"98")==0)
-      text_layer_set_text(mensaje_layer, "Parada sin autobuses disponibles.");
+      {
+      strcat(texto,"Parada ");
+      strcat(texto, devuelve_linea(numero_parada(), v));
+      strcat(texto, " sin buses disponibles.");
+      }
     else if (strcmp(tiempo1,"97")==0)
-      text_layer_set_text(mensaje_layer, "La parada seleccionada no existe.");
+      {
+      strcat(texto,"Parada ");
+      strcat(texto, devuelve_linea(numero_parada(), v));
+      strcat(texto, " no existe.");
+      }
+    else if (strcmp(tiempo1,"96")==0)
+      {
+      strcat(texto,"");
+      }
     else
       {
-        strcpy(texto,"Tiempo estimado: ");
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "pinto una vez con v= %i", v);
+
+        strcat(texto,"Línea ");
+        strcat(texto, devuelve_linea(numero_parada(), v));
+        strcat(texto, ": ");
         strcat(texto, tiempo1);
         strcat(texto, " y ");
         strcat(texto, tiempo2);
-        strcat(texto, " minutos.");
-        text_layer_set_text(mensaje_layer, texto);
+        strcat(texto, " minutos. ");
+        //text_layer_set_text(mensaje_layer, texto);
       }  
+    
+    }
     posicion=0;
     layer_mark_dirty(marcador);
     action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
@@ -154,17 +159,12 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
     dialog_message_window_push(numero_parada(), texto);
 }
 
-void send_int(int16_t parada, const char *linea)
+void send_int(int16_t parada)
 {
 	DictionaryIterator *iter;
  	app_message_outbox_begin(&iter);
   dict_write_int16(iter, KEY_PARADA, parada);
   dict_write_cstring(iter, KEY_L1, devuelve_lineasxparada(parada));
-  dict_write_cstring(iter, KEY_L2, linea);
-  dict_write_cstring(iter, KEY_L3, linea);
-  dict_write_cstring(iter, KEY_L4, linea);
-  dict_write_cstring(iter, KEY_L5, linea);
-  dict_write_cstring(iter, KEY_L6, linea);
   dict_write_end(iter);
  	app_message_outbox_send();
 }
@@ -177,7 +177,7 @@ void envia_peticion()
       memset(&tiempo1[0], 0, sizeof(tiempo1));
       memset(&tiempo2[0], 0, sizeof(tiempo2));
 
-      send_int(numero_parada(),devuelve_linea(numero_parada(), letra));
+      send_int(numero_parada());
 }
 
 void pinta_nombredeparada()

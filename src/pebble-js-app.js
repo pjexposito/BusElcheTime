@@ -1,6 +1,5 @@
 var dict;
 var t1 , t2, i;
-var tiempos = new Array();
 
 
 function HTTPGET(url) {
@@ -24,17 +23,21 @@ function HTTPGET(url) {
 }
 
 function ResuelveParada(parada, lineas) {
+  var tiempos = new Array();
+
     for (i = 0; i < lineas.length; i++) { 
-      BuscaParadas(parada, lineas[i]);
+      if (lineas[i] != "0") 
+        tiempos.push(BuscaParadas(parada, lineas[i]));
+      else
+        {
+      tiempos.push("96");
+      tiempos.push("96");          
+        }
     }     
-  //Mando a la consola los datos que he obtenido
-  //console.log("Tiempo:" + t1 + ", " + t2);
-	for (i = 0; i < 6-lineas.length; i++) {
-     tiempos.push("99");
-      tiempos.push("99");
-  }
+
 	//Este es el diccionario con los datos que voy a mandar al reloj
-  dict = {"KEY_L1" : tiempos[0]+""+tiempos[1], "KEY_L2": tiempos[2]+""+tiempos[3], "KEY_L3" : tiempos[4]+""+tiempos[5], "KEY_L4": tiempos[6]+""+tiempos[7], "KEY_L5" : tiempos[8]+""+tiempos[9], "KEY_L6": tiempos[10]+""+tiempos[11]};
+  dict = {"KEY_L1" : tiempos[0]+tiempos[1]+tiempos[2]+tiempos[3]+tiempos[4]+tiempos[5]+tiempos[6]+tiempos[7]+tiempos[8]+tiempos[9]+tiempos[10]+tiempos[11]};
+  console.log("Mensaje enviados:" + tiempos[0] + tiempos[1] + tiempos[2] + tiempos[3] + tiempos[4] + tiempos[5] + tiempos[6] + tiempos[7] + tiempos[8] + tiempos[9] + tiempos[10] + tiempos[11]);
 
 	//Mando los datos de dirección al reloj
   //console.log("Voy a mandar datos: "+t1 +", "+t2);
@@ -44,7 +47,7 @@ function ResuelveParada(parada, lineas) {
 
 function BuscaParadas(parada,linea) {
     var response = HTTPGET("http://www.auesa.es/paradas_qr/"+parada+".php?vari="+linea);
-    //console.log(response);
+    console.log(response);
     // CODIGOS DE ERROR
     // 97 = Error 404. La web no existe. Posiblemente por que la parada seleccionada no existe.
     // 98 = Existe la línea y la parada pero no hay datos (posiblemente no circulen autobueses a esas horas.
@@ -94,10 +97,13 @@ function BuscaParadas(parada,linea) {
          t2 = "99";
        } 
       }
-  if (t1/10 < 1) t1 = "0"+t1;
-	if (t2/10 < 1) t2 = "0"+t2;
-	tiempos.push(t1);
-	tiempos.push(t2);
+  if (t1/10 < 1 && t1 > 0) t1 = "0"+t1;
+	if (t2/10 < 1 && t2 > 0) t2 = "0"+t2;
+  console.log("T1 y T2: " + t1 + " " + t2);
+
+  return t1+t2;
+	//tiempos.push(t1);
+	//tiempos.push(t2);
 
 
 }
@@ -120,8 +126,13 @@ Pebble.addEventListener("appmessage",
     //console.log("Mensaje recibido:" + e.payload.KEY_T1 + " " + e.payload.KEY_T2);
 
   var parada=e.payload.KEY_PARADA;
+  if (parada=="1") parada="R1";
+  if (parada=="2") parada="R2";
+  if (parada=="3") parada="R3";
+    
   var lineas = e.payload.KEY_L1.split('');
-  
+    console.log("Mensaje recibido. Parada: " + parada + ". Lineas: " + lineas);
+
   ResuelveParada(parada, lineas);
   }
 );
