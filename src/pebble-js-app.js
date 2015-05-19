@@ -23,8 +23,7 @@ function HTTPGET(url) {
 }
 
 function ResuelveParada(parada, lineas) {
-  var tiempos = new Array();
-
+    var tiempos = new Array();
     for (i = 0; i < lineas.length; i++) { 
       if (lineas[i] != "0") 
         tiempos.push(BuscaParadas(parada, lineas[i]));
@@ -46,8 +45,11 @@ function ResuelveParada(parada, lineas) {
 }
 
 function BuscaParadas(parada,linea) {
+    if (linea=="1") linea="R1";
+    if (linea=="2") linea="R2";
+    if (linea=="3") linea="R3";
     var response = HTTPGET("http://www.auesa.es/paradas_qr/"+parada+".php?vari="+linea);
-    console.log(response);
+    console.log("Respuesta "+ response);
     // CODIGOS DE ERROR
     // 97 = Error 404. La web no existe. Posiblemente por que la parada seleccionada no existe.
     // 98 = Existe la línea y la parada pero no hay datos (posiblemente no circulen autobueses a esas horas.
@@ -126,13 +128,8 @@ Pebble.addEventListener("appmessage",
     //console.log("Mensaje recibido:" + e.payload.KEY_T1 + " " + e.payload.KEY_T2);
 
   var parada=e.payload.KEY_PARADA;
-  if (parada=="1") parada="R1";
-  if (parada=="2") parada="R2";
-  if (parada=="3") parada="R3";
-    
   var lineas = e.payload.KEY_L1.split('');
     console.log("Mensaje recibido. Parada: " + parada + ". Lineas: " + lineas);
-
   ResuelveParada(parada, lineas);
   }
 );

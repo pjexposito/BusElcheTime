@@ -77,12 +77,19 @@ void pinta_datos(void)
 	text_layer_set_text(dig2_layer, buffer2);
   snprintf(buffer3, sizeof(buffer3), "%d", numero3);
 	text_layer_set_text(dig3_layer, buffer3);
-  
-  
-  if (numero_parada() < total_paradas) 
-    text_layer_set_text(linea_layer, devuelve_linea(numero_parada(), letra)); 
 
   
+}
+
+void pinta_nombredeparada()
+  {
+   //APP_LOG(APP_LOG_LEVEL_DEBUG, "Parada: %d y total es %d.", numero_parada(), total_paradas);
+
+  if (numero_parada() < total_paradas) 
+    text_layer_set_text(mensaje_layer, devuelve_nombre_parada(numero_parada()));
+  else
+    text_layer_set_text(mensaje_layer, "Parada inexistente");
+
 }
 
 static void in_received_handler(DictionaryIterator *iter, void *context) 
@@ -157,7 +164,13 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
     vibes_short_pulse();
     //dialog_message_window_push(numero_parada(), devuelve_lineasxparada(numero_parada()));
     dialog_message_window_push(numero_parada(), texto);
+    pinta_nombredeparada();
+    action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
 }
+
+
+
+
 
 void send_int(int16_t parada)
 {
@@ -167,6 +180,7 @@ void send_int(int16_t parada)
   dict_write_cstring(iter, KEY_L1, devuelve_lineasxparada(parada));
   dict_write_end(iter);
  	app_message_outbox_send();
+
 }
 
 void envia_peticion()
@@ -178,27 +192,10 @@ void envia_peticion()
       memset(&tiempo2[0], 0, sizeof(tiempo2));
 
       send_int(numero_parada());
-}
 
-void pinta_nombredeparada()
-  {
-   //APP_LOG(APP_LOG_LEVEL_DEBUG, "Parada: %d y total es %d.", numero_parada(), total_paradas);
-
-  if (numero_parada() < total_paradas) 
-    text_layer_set_text(mensaje_layer, devuelve_nombre_parada(numero_parada()));
-  else
-    text_layer_set_text(mensaje_layer, "Parada inexistente");
 
 }
 
-void carga_lineas()
-  {
-  for (int t=0;strcmp(devuelve_linea(numero_parada(), t),"0")!=0;t++)
-    tamano_array_lineas = t;
-  pinta_datos();
-
-  }
-  
 
 void up_click_handler(ClickRecognizerRef recognizer, void *context) 
 {
@@ -261,6 +258,8 @@ void select_click_handler(ClickRecognizerRef recognizer, void *context)
       break;
 		case 1:
       posicion=2;
+      action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, buscar_bitmap);
+
 			break;
 		case 2:
       if ((numero_parada()+2 > total_paradas) || (numero_parada() == 0))
@@ -269,25 +268,18 @@ void select_click_handler(ClickRecognizerRef recognizer, void *context)
       }
     else
       {
-      carga_lineas();
       if (strcmp(devuelve_linea(numero_parada(), 0),"-")==0)
         {
         posicion = 0;
         }
       else
         {
-          //APP_LOG(APP_LOG_LEVEL_DEBUG, "Numero: %d, Preparada: %d", (numero1*100)+(numero2*10)+numero3, pre_parada);
+        envia_peticion();
 
-         if (numero_parada()!=pre_parada) letra = 0;
-         pre_parada = numero_parada();
-         posicion=3;
-         action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, buscar_bitmap);
         }
       }
       break;    
-		case 3:
-        envia_peticion();
-      break;     
+    
     }
 
   layer_mark_dirty(marcador);
@@ -371,7 +363,7 @@ void window_load(Window *window)
   //Asignación de iconos a la barra de opciones
   action_bar_layer_set_icon(action_bar, BUTTON_ID_UP, arriba_bitmap );
   action_bar_layer_set_icon(action_bar, BUTTON_ID_DOWN, abajo_bitmap);
-  if (posicion==3)
+  if (posicion==2)
     action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, buscar_bitmap);
   else
     action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
@@ -385,13 +377,9 @@ void window_load(Window *window)
   textoparada_layer = init_text_layer(GRect(5, 10, 120, 25), GColorBlack, GColorClear, FONT_KEY_GOTHIC_24, GTextAlignmentLeft);
   text_layer_set_text(textoparada_layer, "Parada:");
 	layer_add_child(window_get_root_layer(window), (Layer*) textoparada_layer);
-  
-  textolinea_layer = init_text_layer(GRect(5, 40, 120, 25), GColorBlack, GColorClear, FONT_KEY_GOTHIC_24, GTextAlignmentLeft);
-  text_layer_set_text(textolinea_layer, "Linea:");
-	layer_add_child(window_get_root_layer(window), (Layer*) textolinea_layer);
 
   mensaje_layer = init_text_layer(GRect(5, 70, 120, 80), GColorBlack, GColorClear, FONT_KEY_GOTHIC_24_BOLD, GTextAlignmentLeft);
-	text_layer_set_text(mensaje_layer, "Introduce parada y linea");
+	text_layer_set_text(mensaje_layer, "Introduce parada");
   layer_add_child(window_get_root_layer(window), (Layer*) mensaje_layer);
  
   dig1_layer = init_text_layer(GRect(60, 7, 20, 30), GColorBlack, GColorClear, FONT_KEY_GOTHIC_28_BOLD, GTextAlignmentCenter);
@@ -403,12 +391,9 @@ void window_load(Window *window)
   dig3_layer = init_text_layer(GRect(90, 7, 20, 30), GColorBlack, GColorClear, FONT_KEY_GOTHIC_28_BOLD, GTextAlignmentCenter);
 	layer_add_child(window_get_root_layer(window), (Layer*) dig3_layer);
   
-  linea_layer = init_text_layer(GRect(43, 37, 30, 30), GColorBlack, GColorClear, FONT_KEY_GOTHIC_28_BOLD, GTextAlignmentCenter);
-	layer_add_child(window_get_root_layer(window), (Layer*) linea_layer);
-  
-  carga_lineas(); 
+  pinta_datos();
   pinta_nombredeparada();
-  if (posicion==3)
+  if (posicion==2)
     {
     envia_peticion();
   }
@@ -433,12 +418,10 @@ void window_unload(Window *window)
   action_bar_layer_destroy(action_bar);
 
   text_layer_destroy(nombreparada_layer);
-  text_layer_destroy(textolinea_layer);
   text_layer_destroy(textoparada_layer);
   text_layer_destroy(dig1_layer);
   text_layer_destroy(dig2_layer);
 	text_layer_destroy(dig3_layer);
-  text_layer_destroy(linea_layer);
   text_layer_destroy(mensaje_layer);
   layer_destroy(marcador);
    window_destroy(window);
@@ -461,7 +444,7 @@ void carga_paradas(int n1, int n2, int n3, int l, int fav)
 	app_message_register_inbox_received(in_received_handler);					 
 	window_set_window_handlers(window, (WindowHandlers) handlers);
   if (fav==1)
-    posicion=3;
+    posicion=2;
 	window_stack_push(window, true);
 
 
