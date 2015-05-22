@@ -45,7 +45,7 @@ static void window_load(Window *window) {
   GSize max_size = text_layer_get_content_size(s_label_layer);
   text_layer_set_size(s_label_layer, max_size);
   scroll_layer_set_content_size(s_scroll_layer, GSize(bounds.size.w, max_size.h + 4));
-
+  scroll_layer_set_shadow_hidden(s_scroll_layer, true);
   // Add the layers for display
   scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_label_layer));
   
