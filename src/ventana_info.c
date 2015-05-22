@@ -2,6 +2,8 @@
 
 static Window *s_main_window;
 static TextLayer *s_label_layer, *s_titulo_layer;
+static ScrollLayer *s_scroll_layer;
+
 static BitmapLayer *s_icon_layer;
 int i_parada;
 char i_lineas[200], string_parada[11];
@@ -19,11 +21,36 @@ static void window_load(Window *window) {
   bitmap_layer_set_compositing_mode(s_icon_layer, GCompOpSet);
   layer_add_child(window_layer, bitmap_layer_get_layer(s_icon_layer));
 
-  s_label_layer = text_layer_create(GRect(10, 10 + bitmap_bounds.size.h + 5, 124, 168 - (10 + bitmap_bounds.size.h + 10)));
+  
+
+  s_scroll_layer = scroll_layer_create(GRect(10, 10 + bitmap_bounds.size.h + 5, 124, 168 - (10 + bitmap_bounds.size.h + 10)));
+  scroll_layer_set_click_config_onto_window(s_scroll_layer, window);
+  
+  GRect bounds = layer_get_frame(window_layer);
+  GRect max_text_bounds = GRect(0, 0, bounds.size.w-2, 2000);
+  s_label_layer = text_layer_create(max_text_bounds);
   text_layer_set_text(s_label_layer, i_lineas);
+
+  
+  
+  //s_label_layer = text_layer_create(GRect(10, 10 + bitmap_bounds.size.h + 5, 124, 168 - (10 + bitmap_bounds.size.h + 10)));
+ // text_layer_set_text(s_label_layer, i_lineas);
   text_layer_set_background_color(s_label_layer, GColorClear);
-  text_layer_set_font(s_label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-  layer_add_child(window_layer, text_layer_get_layer(s_label_layer));
+  text_layer_set_font(s_label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  //layer_add_child(window_layer, text_layer_get_layer(s_label_layer));
+  
+  
+  
+    // Trim text layer and scroll content to fit text box
+  GSize max_size = text_layer_get_content_size(s_label_layer);
+  text_layer_set_size(s_label_layer, max_size);
+  scroll_layer_set_content_size(s_scroll_layer, GSize(bounds.size.w, max_size.h + 4));
+
+  // Add the layers for display
+  scroll_layer_add_child(s_scroll_layer, text_layer_get_layer(s_label_layer));
+  
+    layer_add_child(window_layer, scroll_layer_get_layer(s_scroll_layer));
+
   
   s_titulo_layer = text_layer_create(GRect(47, 6 , 80, 60));
   text_layer_set_text(s_titulo_layer, string_parada);

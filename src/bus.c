@@ -146,7 +146,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
         APP_LOG(APP_LOG_LEVEL_DEBUG, "pinto una vez con v= %i", v);
         strcat(texto,"Línea ");
         strcat(texto, devuelve_linea(numero_parada(), v));
-        strcat(texto, ": ");
+        strcat(texto, ":\n");
         strcat(texto, tiempo1);
       APP_LOG(APP_LOG_LEVEL_DEBUG, "Tiempo2 vale: %s", tiempo2);
         if (atoi(tiempo2)!=-1)
