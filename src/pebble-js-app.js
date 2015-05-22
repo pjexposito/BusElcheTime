@@ -23,20 +23,20 @@ function HTTPGET(url) {
 }
 
 function ResuelveParada(parada, lineas) {
-    var tiempos = new Array();
+    var tiempos = "";
     for (i = 0; i < lineas.length; i++) { 
       if (lineas[i] != "0") 
-        tiempos.push(BuscaParadas(parada, lineas[i]));
+        tiempos=tiempos+BuscaParadas(parada, lineas[i]);
       else
         {
-      tiempos.push("96");
-      tiempos.push("96");          
+      tiempos = tiempos+"SPSP";
         }
     }     
 
 	//Este es el diccionario con los datos que voy a mandar al reloj
-  dict = {"KEY_L1" : tiempos[0]+tiempos[1]+tiempos[2]+tiempos[3]+tiempos[4]+tiempos[5]+tiempos[6]+tiempos[7]+tiempos[8]+tiempos[9]+tiempos[10]+tiempos[11]};
-  console.log("Mensaje enviados:" + tiempos[0] + tiempos[1] + tiempos[2] + tiempos[3] + tiempos[4] + tiempos[5] + tiempos[6] + tiempos[7] + tiempos[8] + tiempos[9] + tiempos[10] + tiempos[11]);
+  
+  dict = {"KEY_L1" : tiempos};
+  console.log("Mensaje enviados:" + tiempos);
 
 	//Mando los datos de dirección al reloj
   //console.log("Voy a mandar datos: "+t1 +", "+t2);
@@ -45,9 +45,9 @@ function ResuelveParada(parada, lineas) {
 }
 
 function BuscaParadas(parada,linea) {
-    if (linea=="1") linea="R1";
+    if (linea=="1") linea="R";
     if (linea=="2") linea="R2";
-    if (linea=="3") linea="R3";
+    if (linea=="3") linea="R";
     var response = HTTPGET("http://www.auesa.es/paradas_qr/"+parada+".php?vari="+linea);
     console.log("Respuesta "+ response);
     // CODIGOS DE ERROR
@@ -99,8 +99,8 @@ function BuscaParadas(parada,linea) {
          t2 = "99";
        } 
       }
-  if (t1/10 < 1 && t1 > 0) t1 = "0"+t1;
-	if (t2/10 < 1 && t2 > 0) t2 = "0"+t2;
+  if (t1/10 < 1 && t1 > -1) t1 = "0"+t1;
+	if (t2/10 < 1 && t2 > -1) t2 = "0"+t2;
   console.log("T1 y T2: " + t1 + " " + t2);
 
   return t1+t2;

@@ -15,7 +15,7 @@ ActionBarLayer *action_bar;
 
 // Capas del programa
 static Layer *marcador;
-TextLayer *textolinea_layer, *textoparada_layer, *nombreparada_layer,*dig1_layer, *dig2_layer, *dig3_layer, *linea_layer, *mensaje_layer;
+TextLayer *textolinea_layer, *textoparada_layer, *dig1_layer, *dig2_layer, *dig3_layer, *linea_layer, *mensaje_layer;
 
 
 // Variables de imágenes
@@ -25,7 +25,7 @@ GBitmap *arriba_bitmap, *abajo_bitmap, *pulsar_bitmap, *play_bitmap, *buscar_bit
 
 // Resto de variables
 char texto[1024], tiempo1[100], tiempo2[100], tiempo_retorno[100];
-static int numero1, numero2, numero3, letra, posicion=0, cargando=0, tamano_array_lineas, pre_parada=0;
+static int numero1, numero2, numero3, letra, posicion=0, cargando=0, tamano_array_lineas;
 
 // Asignación para recibir datos
 enum {
@@ -106,14 +106,13 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
 
   strcat(tiempo_retorno, t->value->cstring);
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Acabo de recibir datos (pebble). Retorno: %s", tiempo_retorno);
-     strcpy(texto,"Paradas: ");
-
-  for (int v=0;v<5;v++)
+     strcpy(texto,"");
+  for (int v=0;v<6;v++)
     {
-  tiempo1[0] = '\0';
-  tiempo2[0] = '\0';
-  subString (tiempo_retorno, 4*v, 2, tiempo1);
-  subString (tiempo_retorno, (4*v)+2, 2, tiempo2);
+    tiempo1[0] = '\0';
+    tiempo2[0] = '\0';
+    subString (tiempo_retorno, 4*v, 2, tiempo1);
+    subString (tiempo_retorno, (4*v)+2, 2, tiempo2);
       APP_LOG(APP_LOG_LEVEL_DEBUG, "V vale %i. Tiempos: %s %s", v, tiempo1, tiempo2);
 
     // CODIGOS DE ERROR
@@ -124,35 +123,38 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
       {
       strcat(texto,"Parada ");
       strcat(texto, devuelve_linea(numero_parada(), v));
-      strcat(texto, " sin servicio.");
+      strcat(texto, " sin servicio.\n");
       }
     else if (strcmp(tiempo1,"98")==0)
       {
       strcat(texto,"Parada ");
       strcat(texto, devuelve_linea(numero_parada(), v));
-      strcat(texto, " sin buses disponibles.");
+      strcat(texto, " sin buses disponibles.\n");
       }
     else if (strcmp(tiempo1,"97")==0)
       {
       strcat(texto,"Parada ");
       strcat(texto, devuelve_linea(numero_parada(), v));
-      strcat(texto, " no existe.");
+      strcat(texto, " no existe.\n");
       }
-    else if (strcmp(tiempo1,"96")==0)
+    else if (strcmp(tiempo1,"SP")==0)
       {
       strcat(texto,"");
       }
     else
       {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "pinto una vez con v= %i", v);
-
         strcat(texto,"Línea ");
         strcat(texto, devuelve_linea(numero_parada(), v));
         strcat(texto, ": ");
         strcat(texto, tiempo1);
-        strcat(texto, " y ");
-        strcat(texto, tiempo2);
-        strcat(texto, " minutos. ");
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "Tiempo2 vale: %s", tiempo2);
+        if (atoi(tiempo2)!=-1)
+          {
+          strcat(texto, " y ");
+          strcat(texto, tiempo2);
+          }
+          strcat(texto, " minutos.\n");
         //text_layer_set_text(mensaje_layer, texto);
       }  
     
@@ -308,17 +310,14 @@ void marcador_update_callback(Layer *me, GContext* ctx)
 	switch(posicion) 
     {
 		case 0:
-      graphics_fill_rect(ctx, GRect(62, 37, 15, 2), 0, GCornerNone);  
+      graphics_fill_rect(ctx, GRect(10, 85, 30, 3), 0, GCornerNone);  
       break;
 		case 1:
-      graphics_fill_rect(ctx, GRect(77, 37, 15, 2), 0, GCornerNone);    
+      graphics_fill_rect(ctx, GRect(40, 85, 30, 3), 0, GCornerNone);    
 			break;
 		case 2:
-      graphics_fill_rect(ctx, GRect(92, 37, 15, 2), 0, GCornerNone);  
-			break;    
-		case 3:
-      graphics_fill_rect(ctx, GRect(48, 67, 20, 2), 0, GCornerNone);  
-			break;     
+      graphics_fill_rect(ctx, GRect(70, 85, 30, 3), 0, GCornerNone);  
+			break;      
     }
 } 
 
@@ -370,25 +369,21 @@ void window_load(Window *window)
 
   //Capas principales del programa
   
-  nombreparada_layer = init_text_layer(GRect(5, 30, 120, 25), GColorBlack, GColorClear, FONT_KEY_GOTHIC_18, GTextAlignmentLeft);
-  //text_layer_set_text(nombreparada_layer, "Calle chula 3");
-	layer_add_child(window_get_root_layer(window), (Layer*) nombreparada_layer);
-  
-  textoparada_layer = init_text_layer(GRect(5, 10, 120, 25), GColorBlack, GColorClear, FONT_KEY_GOTHIC_24, GTextAlignmentLeft);
-  text_layer_set_text(textoparada_layer, "Parada:");
+  textoparada_layer = init_text_layer(GRect(5, 5, 120, 35), GColorBlack, GColorClear, FONT_KEY_GOTHIC_28_BOLD, GTextAlignmentLeft);
+  text_layer_set_text(textoparada_layer, "Parada");
 	layer_add_child(window_get_root_layer(window), (Layer*) textoparada_layer);
 
-  mensaje_layer = init_text_layer(GRect(5, 70, 120, 80), GColorBlack, GColorClear, FONT_KEY_GOTHIC_24_BOLD, GTextAlignmentLeft);
+  mensaje_layer = init_text_layer(GRect(5, 90, 100, 80), GColorBlack, GColorClear, FONT_KEY_GOTHIC_24_BOLD, GTextAlignmentLeft);
 	text_layer_set_text(mensaje_layer, "Introduce parada");
   layer_add_child(window_get_root_layer(window), (Layer*) mensaje_layer);
  
-  dig1_layer = init_text_layer(GRect(60, 7, 20, 30), GColorBlack, GColorClear, FONT_KEY_GOTHIC_28_BOLD, GTextAlignmentCenter);
+  dig1_layer = init_text_layer(GRect(10, 30, 30, 50), GColorBlack, GColorClear, FONT_KEY_ROBOTO_BOLD_SUBSET_49, GTextAlignmentCenter);
 	layer_add_child(window_get_root_layer(window), (Layer*) dig1_layer);
   
-  dig2_layer = init_text_layer(GRect(75, 7, 20, 30), GColorBlack, GColorClear, FONT_KEY_GOTHIC_28_BOLD, GTextAlignmentCenter);
+  dig2_layer = init_text_layer(GRect(40, 30, 30, 50), GColorBlack, GColorClear, FONT_KEY_ROBOTO_BOLD_SUBSET_49, GTextAlignmentCenter);
 	layer_add_child(window_get_root_layer(window), (Layer*) dig2_layer);
   
-  dig3_layer = init_text_layer(GRect(90, 7, 20, 30), GColorBlack, GColorClear, FONT_KEY_GOTHIC_28_BOLD, GTextAlignmentCenter);
+  dig3_layer = init_text_layer(GRect(70, 30, 30, 50), GColorBlack, GColorClear, FONT_KEY_ROBOTO_BOLD_SUBSET_49, GTextAlignmentCenter);
 	layer_add_child(window_get_root_layer(window), (Layer*) dig3_layer);
   
   pinta_datos();
@@ -417,7 +412,6 @@ void window_unload(Window *window)
   
   action_bar_layer_destroy(action_bar);
 
-  text_layer_destroy(nombreparada_layer);
   text_layer_destroy(textoparada_layer);
   text_layer_destroy(dig1_layer);
   text_layer_destroy(dig2_layer);
