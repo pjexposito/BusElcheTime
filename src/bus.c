@@ -30,12 +30,7 @@ static int numero1, numero2, numero3, letra, posicion=0, cargando=0, tamano_arra
 // Asignación para recibir datos
 enum {
 	KEY_PARADA = 0,
-	KEY_L1 = 1,
-  KEY_L2 = 2,
-  KEY_L3 = 3,
-  KEY_L4 = 4,
-  KEY_L5 = 5,
-  KEY_L6 = 6
+	KEY_L1 = 1
 };
 
 char* subString (const char* input, int offset, int len, char* dest)
@@ -96,7 +91,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
 {
 
 
-
+  int total_lineas = 0;
   memset(&tiempo_retorno[0], 0, sizeof(tiempo_retorno));
   memset(&tiempo1[0], 0, sizeof(tiempo1));
   memset(&tiempo2[0], 0, sizeof(tiempo2));
@@ -119,6 +114,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
     // 97 = Error 404. La web no existe. Posiblemente por que la parada seleccionada no existe.
     // 98 = Existe la línea y la parada pero no hay datos (posiblemente no circulen autobueses a esas horas).
     // 99 = No pasa esa linea por la parada seleccionada.
+    total_lineas = total_lineas + 1;
     if (strcmp(tiempo1,"99")==0)
       {
       strcat(texto,"Parada ");
@@ -140,6 +136,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
     else if (strcmp(tiempo1,"SP")==0)
       {
       strcat(texto,"");
+      total_lineas = total_lineas - 1;
       }
     else
       {
@@ -165,7 +162,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
     cargando = 0;
     vibes_short_pulse();
     //dialog_message_window_push(numero_parada(), devuelve_lineasxparada(numero_parada()));
-    dialog_message_window_push(numero_parada(), texto);
+    dialog_message_window_push(numero_parada(), texto, total_lineas);
     pinta_nombredeparada();
     action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
 }
@@ -354,11 +351,19 @@ void window_load(Window *window)
   action_bar_layer_add_to_window(action_bar, window);
   action_bar_layer_set_click_config_provider(action_bar, click_config_provider);
   //Asignación de recursos gráficos
-  arriba_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ICONO_ARRIBA);
-  abajo_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_ABAJO);
-  pulsar_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICON_PULSAR);
-  play_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_PLAY);
-  buscar_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_BUSCAR);
+  #ifdef PBL_COLOR 
+    arriba_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ICONO_ARRIBA_BLACK);
+    abajo_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_ABAJO_BLACK);
+    pulsar_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICON_PULSAR_BLACK);
+    play_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_PLAY_BLACK);
+    buscar_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_BUSCAR_BLACK);
+  #else
+    arriba_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ICONO_ARRIBA_WHITE);
+    abajo_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_ABAJO_WHITE);
+    pulsar_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICON_PULSAR_WHITE);
+    play_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_PLAY_WHITE);
+    buscar_bitmap =  gbitmap_create_with_resource(RESOURCE_ID_ICONO_BUSCAR_WHITE);
+  #endif
   //Asignación de iconos a la barra de opciones
   action_bar_layer_set_icon(action_bar, BUTTON_ID_UP, arriba_bitmap );
   action_bar_layer_set_icon(action_bar, BUTTON_ID_DOWN, abajo_bitmap);
@@ -434,7 +439,9 @@ void carga_paradas(int n1, int n2, int n3, int l, int fav)
 		.load = window_load,
 		.unload = window_unload
 	};
-  
+  #ifdef PBL_SDK_2
+    window_set_fullscreen(window, true);
+  #endif
 	app_message_register_inbox_received(in_received_handler);					 
 	window_set_window_handlers(window, (WindowHandlers) handlers);
   if (fav==1)

@@ -259,6 +259,9 @@ int main(void) {
     .load = window_load,
     .unload = window_unload,
   });
+  #ifdef PBL_SDK_2
+    window_set_fullscreen(window, true);
+  #endif
   window_stack_push(window, true);
   app_event_loop();
   window_destroy(window);

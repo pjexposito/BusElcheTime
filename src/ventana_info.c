@@ -5,7 +5,7 @@ static TextLayer *s_label_layer, *s_titulo_layer;
 static ScrollLayer *s_scroll_layer;
 
 static BitmapLayer *s_icon_layer;
-int i_parada;
+int i_parada, i_total_lineas;
 char i_lineas[200], string_parada[11];
 
 static GBitmap *s_icon_bitmap;
@@ -18,7 +18,7 @@ static void window_load(Window *window) {
 
   s_icon_layer = bitmap_layer_create(GRect(10, 10, bitmap_bounds.size.w, bitmap_bounds.size.h));
   bitmap_layer_set_bitmap(s_icon_layer, s_icon_bitmap);
-  bitmap_layer_set_compositing_mode(s_icon_layer, GCompOpSet);
+  //bitmap_layer_set_compositing_mode(s_icon_layer, GCompOpSet);
   layer_add_child(window_layer, bitmap_layer_get_layer(s_icon_layer));
 
   
@@ -36,7 +36,11 @@ static void window_load(Window *window) {
   //s_label_layer = text_layer_create(GRect(10, 10 + bitmap_bounds.size.h + 5, 124, 168 - (10 + bitmap_bounds.size.h + 10)));
  // text_layer_set_text(s_label_layer, i_lineas);
   text_layer_set_background_color(s_label_layer, GColorClear);
-  text_layer_set_font(s_label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  if (i_total_lineas> 3)
+    text_layer_set_font(s_label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  else
+    text_layer_set_font(s_label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
+    
   //layer_add_child(window_layer, text_layer_get_layer(s_label_layer));
   
   
@@ -52,7 +56,7 @@ static void window_load(Window *window) {
     layer_add_child(window_layer, scroll_layer_get_layer(s_scroll_layer));
 
   
-  s_titulo_layer = text_layer_create(GRect(47, 6 , 80, 60));
+  s_titulo_layer = text_layer_create(GRect(41, 6 , 120, 60));
   text_layer_set_text(s_titulo_layer, string_parada);
   text_layer_set_background_color(s_titulo_layer, GColorClear);
   text_layer_set_font(s_titulo_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
@@ -70,17 +74,25 @@ static void window_unload(Window *window) {
   s_main_window = NULL;
 }
 
-void dialog_message_window_push(int parada, char lineas[200]) {
+void dialog_message_window_push(int parada, char lineas[200], int total_lineas) {
   if(!s_main_window) {
     i_parada = parada;
+    i_total_lineas = total_lineas;
     memset(&i_lineas[0], 0, sizeof(i_lineas));
     memset(&string_parada[0], 0, sizeof(string_parada));
 
     strcat(i_lineas, lineas);
-    snprintf(string_parada, sizeof(string_parada), "%d", parada);
+    snprintf(string_parada, sizeof(string_parada), "Parada %d", parada);
 
     s_main_window = window_create();
-    window_set_background_color(s_main_window, GColorGreen);
+    #ifdef PBL_COLOR 
+      window_set_background_color(s_main_window, GColorGreen);
+    #else
+      window_set_background_color(s_main_window, GColorWhite);
+    #endif
+    #ifdef PBL_SDK_2
+      window_set_fullscreen(s_main_window, true);
+    #endif
     window_set_window_handlers(s_main_window, (WindowHandlers) {
         .load = window_load,
         .unload = window_unload,

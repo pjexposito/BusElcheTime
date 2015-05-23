@@ -36,7 +36,7 @@ function ResuelveParada(parada, lineas) {
 	//Este es el diccionario con los datos que voy a mandar al reloj
   
   dict = {"KEY_L1" : tiempos};
-  console.log("Mensaje enviados:" + tiempos);
+  //console.log("Mensaje enviados:" + tiempos);
 
 	//Mando los datos de dirección al reloj
   //console.log("Voy a mandar datos: "+t1 +", "+t2);
