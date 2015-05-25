@@ -1,10 +1,11 @@
 {
     "appKeys": {
         "KEY_L1": 1,
-        "KEY_PARADA": 0
+        "KEY_PARADA": 0,
+        "KEY_TIPO": 2
     },
     "capabilities": [
-        ""
+        "location"
     ],
     "companyName": "Pedro",
     "longName": "Bus Elche",
@@ -47,7 +48,6 @@
     "sdkVersion": "3",
     "shortName": "Bus Elche",
     "targetPlatforms": [
-        "aplite",
         "basalt"
     ],
     "uuid": "383f627a-1b76-47c2-a3d1-e63e305dc8cb",

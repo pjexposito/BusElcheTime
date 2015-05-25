@@ -4,7 +4,7 @@
 
   
 #define NUM_MENU_SECTIONS 2
-#define NUM_FIRST_MENU_ITEMS 1
+#define NUM_FIRST_MENU_ITEMS 2
 #define NUM_SECOND_MENU_ITEMS 5
   
 static Window *window;
@@ -152,6 +152,9 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
         case 0:
           menu_cell_basic_draw(ctx, cell_layer, "Nueva busqueda", "Pulsa para iniciar", NULL);
           break;
+        case 1:
+          menu_cell_basic_draw(ctx, cell_layer, "Buscar parada", "Pulsa para iniciar", NULL);
+          break;
       }
       break;
     case 1:
@@ -192,7 +195,11 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
       switch (cell_index->row) {
       case 0:
         valores = carga_datos(PRINCIPAL_PKEY);
-        carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 0);
+        carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 0, 0);
+        break;
+      case 1:
+        valores = carga_datos(PRINCIPAL_PKEY);
+        carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 0, 1);
         break;
       }
       break;
@@ -201,23 +208,23 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
       switch (cell_index->row) {
       case 0:
          valores = carga_datos(FAV1_PKEY);
-         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1);
+         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1, 0);
          break;
       case 1:
          valores = carga_datos(FAV2_PKEY);
-         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1);
+         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1, 0);
          break;
       case 2:
          valores = carga_datos(FAV3_PKEY);
-         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1);
+         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1, 0);
          break;
       case 3:
          valores = carga_datos(FAV4_PKEY);
-         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1);
+         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1, 0);
          break;
       case 4:
          valores = carga_datos(FAV5_PKEY);
-         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1);
+         carga_paradas(valores.v1,valores.v2,valores.v3,valores.v4, 1, 0);
          layer_mark_dirty(menu_layer_get_layer(menu_layer));
          break;
       }

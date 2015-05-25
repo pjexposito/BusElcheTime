@@ -25,12 +25,13 @@ GBitmap *arriba_bitmap, *abajo_bitmap, *pulsar_bitmap, *play_bitmap, *buscar_bit
 
 // Resto de variables
 char texto[1024], tiempo1[100], tiempo2[100], tiempo_retorno[100];
-static int numero1, numero2, numero3, letra, posicion=0, cargando=0, tamano_array_lineas;
+static int numero1, numero2, numero3, letra, posicion=0, cargando=0, tamano_array_lineas, i_buscar;
 
 // Asignación para recibir datos
 enum {
 	KEY_PARADA = 0,
-	KEY_L1 = 1
+	KEY_L1 = 1,
+  KEY_TIPO = 2
 };
 
 char* subString (const char* input, int offset, int len, char* dest)
@@ -90,62 +91,79 @@ void pinta_nombredeparada()
 static void in_received_handler(DictionaryIterator *iter, void *context) 
 {
 
-
   int total_lineas = 0;
   memset(&tiempo_retorno[0], 0, sizeof(tiempo_retorno));
   memset(&tiempo1[0], 0, sizeof(tiempo1));
   memset(&tiempo2[0], 0, sizeof(tiempo2));
    
   (void) context;	
-	Tuple *t = dict_read_first(iter);
-
+  Tuple *t = dict_find(iter, KEY_L1);
+  Tuple *t_tipo = dict_find(iter, KEY_TIPO);
   strcat(tiempo_retorno, t->value->cstring);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Acabo de recibir datos (pebble). Retorno: %s", tiempo_retorno);
-     strcpy(texto,"");
-  for (int v=0;v<6;v++)
-    {
-    tiempo1[0] = '\0';
-    tiempo2[0] = '\0';
-    subString (tiempo_retorno, 4*v, 2, tiempo1);
-    subString (tiempo_retorno, (4*v)+2, 2, tiempo2);
+
+  if (t_tipo->value->uint32 == 1)
+    {  
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Recibo parada: %s", tiempo_retorno);
+
+
+    posicion=0;
+    cargando = 0;
+    numero1= atoi(tiempo_retorno)/100;
+    numero2= (atoi(tiempo_retorno) % 100) /10;
+    numero3=(atoi(tiempo_retorno) % 10);
+    layer_mark_dirty(marcador);
+    pinta_datos();
+    pinta_nombredeparada();
+
+  }
+  else
+  {  
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Acabo de recibir datos (pebble). Retorno: %s", tiempo_retorno);
+    strcpy(texto,"");
+    for (int v=0;v<6;v++)
+      {
+      tiempo1[0] = '\0';
+      tiempo2[0] = '\0';
+      subString (tiempo_retorno, 4*v, 2, tiempo1);
+      subString (tiempo_retorno, (4*v)+2, 2, tiempo2);
       APP_LOG(APP_LOG_LEVEL_DEBUG, "V vale %i. Tiempos: %s %s", v, tiempo1, tiempo2);
 
-    // CODIGOS DE ERROR
-    // 97 = Error 404. La web no existe. Posiblemente por que la parada seleccionada no existe.
-    // 98 = Existe la línea y la parada pero no hay datos (posiblemente no circulen autobueses a esas horas).
-    // 99 = No pasa esa linea por la parada seleccionada.
-    total_lineas = total_lineas + 1;
-    if (strcmp(tiempo1,"99")==0)
-      {
-      strcat(texto,"Parada ");
-      strcat(texto, devuelve_linea(numero_parada(), v));
-      strcat(texto, " sin servicio.\n");
-      }
-    else if (strcmp(tiempo1,"98")==0)
-      {
-      strcat(texto,"Parada ");
-      strcat(texto, devuelve_linea(numero_parada(), v));
-      strcat(texto, " sin buses disponibles.\n");
-      }
-    else if (strcmp(tiempo1,"97")==0)
-      {
-      strcat(texto,"Parada ");
-      strcat(texto, devuelve_linea(numero_parada(), v));
-      strcat(texto, " no existe.\n");
-      }
-    else if (strcmp(tiempo1,"SP")==0)
-      {
-      strcat(texto,"");
-      total_lineas = total_lineas - 1;
-      }
-    else
-      {
+      // CODIGOS DE ERROR
+      // 97 = Error 404. La web no existe. Posiblemente por que la parada seleccionada no existe.
+      // 98 = Existe la línea y la parada pero no hay datos (posiblemente no circulen autobueses a esas horas).
+      // 99 = No pasa esa linea por la parada seleccionada.
+      total_lineas = total_lineas + 1;
+      if (strcmp(tiempo1,"99")==0)
+        {
+        strcat(texto,"Parada ");
+        strcat(texto, devuelve_linea(numero_parada(), v));
+        strcat(texto, " sin servicio.\n");
+        }
+      else if (strcmp(tiempo1,"98")==0)
+        {
+        strcat(texto,"Parada ");
+        strcat(texto, devuelve_linea(numero_parada(), v));
+        strcat(texto, " sin buses disponibles.\n");
+        }
+      else if (strcmp(tiempo1,"97")==0)
+        {
+        strcat(texto,"Parada ");
+        strcat(texto, devuelve_linea(numero_parada(), v));
+        strcat(texto, " no existe.\n");
+        }
+      else if (strcmp(tiempo1,"SP")==0)
+        {
+        strcat(texto,"");
+        total_lineas = total_lineas - 1;
+        }
+      else
+        {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "pinto una vez con v= %i", v);
         strcat(texto,"Línea ");
         strcat(texto, devuelve_linea(numero_parada(), v));
         strcat(texto, ":\n");
         strcat(texto, tiempo1);
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Tiempo2 vale: %s", tiempo2);
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Tiempo2 vale: %s", tiempo2);
         if (atoi(tiempo2)!=-1)
           {
           strcat(texto, " y ");
@@ -153,32 +171,52 @@ static void in_received_handler(DictionaryIterator *iter, void *context)
           }
           strcat(texto, " minutos.\n");
         //text_layer_set_text(mensaje_layer, texto);
-      }  
-    
+        }  
+      }
+      posicion=0;
+      layer_mark_dirty(marcador);
+      action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
+      cargando = 0;
+      vibes_short_pulse();
+      //dialog_message_window_push(numero_parada(), devuelve_lineasxparada(numero_parada()));
+      dialog_message_window_push(numero_parada(), texto, total_lineas);
+      pinta_nombredeparada();
+      action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
     }
-    posicion=0;
-    layer_mark_dirty(marcador);
-    action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
-    cargando = 0;
-    vibes_short_pulse();
-    //dialog_message_window_push(numero_parada(), devuelve_lineasxparada(numero_parada()));
-    dialog_message_window_push(numero_parada(), texto, total_lineas);
-    pinta_nombredeparada();
-    action_bar_layer_set_icon(action_bar, BUTTON_ID_SELECT, play_bitmap);
-}
+  }
 
 
 
 
 
-void send_int(int16_t parada)
+void manda_js(int tipo,int16_t parada)
 {
 	DictionaryIterator *iter;
  	app_message_outbox_begin(&iter);
-  dict_write_int16(iter, KEY_PARADA, parada);
-  dict_write_cstring(iter, KEY_L1, devuelve_lineasxparada(parada));
+  if (tipo==0)
+  {
+    dict_write_int16(iter, KEY_TIPO, 0);    
+    dict_write_int16(iter, KEY_PARADA, parada);
+    dict_write_cstring(iter, KEY_L1, devuelve_lineasxparada(parada));
+  }
+  else if (tipo==1)
+  {
+    dict_write_int16(iter, KEY_TIPO, 1);    
+            APP_LOG(APP_LOG_LEVEL_DEBUG, "Tipo 1");
+
+  }
   dict_write_end(iter);
  	app_message_outbox_send();
+
+}
+
+void busca_localizacion()
+  {
+      text_layer_set_text(mensaje_layer, "Buscando...");
+      cargando = 1;
+      //Borro la variable de tiempo 1 y 2 antes de volver a pedir datos.
+      manda_js(1,0);
+          APP_LOG(APP_LOG_LEVEL_DEBUG, "En Pebble mando a buscar");
 
 }
 
@@ -189,8 +227,7 @@ void envia_peticion()
       //Borro la variable de tiempo 1 y 2 antes de volver a pedir datos.
       memset(&tiempo1[0], 0, sizeof(tiempo1));
       memset(&tiempo2[0], 0, sizeof(tiempo2));
-
-      send_int(numero_parada());
+      manda_js(0,numero_parada());
 
 
 }
@@ -393,6 +430,8 @@ void window_load(Window *window)
   
   pinta_datos();
   pinta_nombredeparada();
+  if (i_buscar==1)
+      busca_localizacion();
   if (posicion==2)
     {
     envia_peticion();
@@ -428,8 +467,9 @@ void window_unload(Window *window)
 }
 
 /* Initialize the main app elements */
-void carga_paradas(int n1, int n2, int n3, int l, int fav)
+void carga_paradas(int n1, int n2, int n3, int l, int fav, int buscar)
 {
+  i_buscar = 0;
   numero1 = n1;
   numero2 = n2;
   numero3 = n3;
@@ -446,6 +486,8 @@ void carga_paradas(int n1, int n2, int n3, int l, int fav)
 	window_set_window_handlers(window, (WindowHandlers) handlers);
   if (fav==1)
     posicion=2;
+  if (buscar==1)
+    i_buscar = 1;
 	window_stack_push(window, true);
 
 
