@@ -357,7 +357,7 @@ function distance(lat1, lon1, lat2, lon2)
 
 
 function localiza(){
-  locationWatcher = window.navigator.geolocation.getCurrentPosition(showPosition, ErrorPosicion,{maximumAge:0, timeout:5000, enableHighAccuracy: false});  
+  navigator.geolocation.getCurrentPosition(showPosition, ErrorPosicion,{maximumAge:0, timeout:5000, enableHighAccuracy: true});  
 }
 
 
@@ -365,7 +365,7 @@ function ErrorPosicion()
 	{
 		//ParadaCercana(position.coords.latitude, position.coords.longitude);
 		
-	    console.log("Error");	
+    console.log("Error");	
 	}    
 
 function showPosition(position) 
